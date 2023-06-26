@@ -6,6 +6,8 @@ package it.polito.tdp.food;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.TreeMap;
+
 import it.polito.tdp.food.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -40,7 +42,7 @@ public class FoodController {
     private Button btnCammino; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxPorzioni"
-    private ComboBox<?> boxPorzioni; // Value injected by FXMLLoader
+    private ComboBox<String> boxPorzioni; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
@@ -48,24 +50,61 @@ public class FoodController {
     @FXML
     void doCammino(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Cerco cammino peso massimo...");
+    	String S = this.boxPorzioni.getValue();
+    	if(S!=null) {
+    		String ii = this.txtPassi.getText();
+    		try {
+    			int i = Integer.parseInt(ii);
+    			
+	    		for(String s : model.getBestPath(S, i)) {
+	    			this.txtResult.appendText(s+"\n");
+	    		}
+    		}catch(NumberFormatException e ) {
+    			e.printStackTrace();
+        		txtResult.appendText("Parametro inserito nel formato sbagliato.\n");
+    		}
+    	}else {
+    	txtResult.appendText("Inserire tipo di porzione.");}
     }
+    	
 
     @FXML
     void doCorrelate(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Cerco porzioni correlate...");
-    	
+    	String S = this.boxPorzioni.getValue();
+    	if(S!=null) {
+    		TreeMap<String, Integer> map = model.getConnessa(S);
+    		for(String s : map.keySet()) {
+    			this.txtResult.appendText(s+" : "+map.get(s)+"\n");
+    		}
+    	}else {
+    	txtResult.appendText("Inserire tipo di porzione.");}
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Creazione grafo...");
-    	
+    	String s = this.txtCalorie.getText();
+    	try {
+    		int i = Integer.parseInt(s);
+    		if(i>0) {
+    			model.creaGrafo(i);
+    			txtResult.appendText("Grafo creato con "+model.getGrafo().vertexSet().size()+" e "+model.getGrafo().edgeSet().size()+" archi.\n");
+    			this.setCombo();
+    		}else {
+    			txtResult.appendText("Inserire un numero maggiore di 0.\n");
+    		}
+    	}catch(NumberFormatException e) {
+    		e.printStackTrace();
+    		txtResult.appendText("Parametro inserito nel formato sbagliato.\n");
+    	}    	
     }
 
-    @FXML // This method is called by the FXMLLoader when initialization is complete
+    private void setCombo() {
+		this.boxPorzioni.getItems().addAll(model.setCombo());		
+	}
+
+	@FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert txtCalorie != null : "fx:id=\"txtCalorie\" was not injected: check your FXML file 'Food.fxml'.";
         assert txtPassi != null : "fx:id=\"txtPassi\" was not injected: check your FXML file 'Food.fxml'.";
